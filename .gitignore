@@ -5,6 +5,7 @@ node_modules/
 
 # Expo
 .expo/
+./config/firebase.ts
 dist/
 web-build/
 expo-env.d.ts

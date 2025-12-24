@@ -9,6 +9,7 @@ import Input from '@/components/Input'
 import * as Icons from 'phosphor-react-native'
 import Button from '@/components/Button'
 import { useRouter } from "expo-router";
+import { useAuth } from '@/contexts/authContext'
 
 const Login = () => {
 
@@ -16,18 +17,21 @@ const Login = () => {
   const passwordRef = useRef("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const {login: loginUser} = useAuth();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if(!emailRef.current || !passwordRef.current){
       Alert.alert("Error", "Please fill all the fields");
       return;
     }
-    console.log("Email:", emailRef.current);
-    console.log("Password:", passwordRef.current);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    const res = await loginUser(emailRef.current, passwordRef.current);
+    setIsLoading(false);
+    if(!res.success){
+      Alert.alert("Error", res.msg);
+    } else {
+      router.push("/(tabs)");
+    }
   }
 
   return (

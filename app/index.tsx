@@ -4,13 +4,7 @@ import { colors } from "@/constants/theme";
 import { useRouter } from "expo-router";
 
 const index = () => {
-    const router = useRouter();
-    useEffect(() => {
-        setTimeout(() => {
-            router.push('/Welcome')
-        }, 2000);
-    }, []);
-
+    
     return (
         <View style={styles.container}>
             <Image 
