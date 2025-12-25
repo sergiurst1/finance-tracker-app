@@ -6,7 +6,7 @@ import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: "expence-tracker-dc485.firebaseapp.com",
   projectId: "expence-tracker-dc485",
   storageBucket: "expence-tracker-dc485.firebasestorage.app",
