@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import ScreenWrapper from '@/components/ScreenWrapper'
 import { colors, radius, spacingX, spacingY } from '@/constants/theme'
@@ -10,9 +10,14 @@ import { Image } from 'expo-image'
 import { getProfileImage } from '@/services/imageServices'
 import { accountOptionType } from '@/types'
 import * as Icon from 'phosphor-react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
+import { signOut } from 'firebase/auth'
+import { auth } from '@/config/firebase'
+import { useRouter } from 'expo-router'
 
 const Profile = () => {
     const { user } = useAuth();
+    const router = useRouter();
 
     const accountOptions: accountOptionType[] = [
         {
@@ -61,6 +66,37 @@ const Profile = () => {
             bgColor: '#e11d48',
         },
     ];
+
+    const showLogoutAlert = () => {
+        Alert.alert(
+            "Confirm Logout", 
+            "Are you sure you want to log out?",[
+                {
+                    text: "Cancel",
+                    onPress: () => {console.log("Logout cancelled")},
+                    style: "cancel"
+                },
+                {
+                    text: "Logout",
+                    onPress: () => handleLogout(),
+                    style: "destructive"
+                },
+            ]
+        );
+    };
+
+    const handleLogout = async () => {
+            await signOut(auth);
+    }
+
+    const handlePress = (option: accountOptionType) => {
+        if(option.title === 'Log Out'){
+            showLogoutAlert();
+        }
+        if(option.routeName){
+            router.push(option.routeName);
+        }
+    }
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -80,8 +116,8 @@ const Profile = () => {
             {
                 accountOptions.map((option, index) => {
                     return (
-                        <View style={styles.listItem}>
-                            <TouchableOpacity style={styles.flexRow}>
+                        <Animated.View key={index.toString()} entering={FadeInDown.delay(index*50).springify().damping(14)} style={styles.listItem}>
+                            <TouchableOpacity style={styles.flexRow} onPress={() => handlePress(option)}>
                                 <View style={[styles.listIcon, {backgroundColor: option.bgColor}]}>
                                     {option.icon}
                                 </View>
@@ -92,7 +128,7 @@ const Profile = () => {
                                     weight='bold'
                                 ></Icon.CaretRightIcon>
                             </TouchableOpacity>
-                        </View>
+                        </Animated.View>
                     )
                 })
             }

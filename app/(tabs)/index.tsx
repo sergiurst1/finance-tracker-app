@@ -11,16 +11,9 @@ import ScreenWrapper from '@/components/ScreenWrapper'
 const Home = () => {
     const { user } = useAuth();
 
-    const handleLogout = async () => {
-        await signOut(auth);
-    }
-
   return (
     <ScreenWrapper>
-      <Text>Home</Text>
-      <Button onPress={handleLogout}>
-        <Typo color={colors.black}> Logout</Typo>
-      </Button>
+      <Typo>Home</Typo>
     </ScreenWrapper>
   )
 }
