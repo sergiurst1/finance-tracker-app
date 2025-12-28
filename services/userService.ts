@@ -1,7 +1,7 @@
 import { firestore } from "@/config/firebase";
 import { ResponseType, UserDataType } from "@/types";
 import { doc, updateDoc } from "firebase/firestore";
-import { uploadFileToCloudinary } from "./imageServices";
+import { uploadFileToCloudinary } from "./imageService";
 
 
 export const updateUser = async (
