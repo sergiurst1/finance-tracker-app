@@ -2,19 +2,8 @@
 
 A professional, full-stack personal finance management application built with **React Native (Expo)** and **Firebase**. This app provides a seamless experience for tracking income and expenses, managing multiple wallets, and visualizing financial data through interactive charts.
 
-[![GitHub license](https://img.shields.io/github/license/sergiurst1/finance-tracker-app)](https://github.com/sergiurst1/finance-tracker-app/blob/main/LICENSE)
 [![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
 [![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
-
----
-
-## 📸 Preview
-
-| Home Screen | Statistics (Charts) | Search Transactions |
-| :---: | :---: | :---: |
-| ![Home](https://via.placeholder.com/200x400?text=Home+Screen) | ![Stats](https://via.placeholder.com/200x400?text=Charts) | ![Search](https://via.placeholder.com/200x400?text=Search) |
-
----
 
 ## 🚀 Key Features
 
