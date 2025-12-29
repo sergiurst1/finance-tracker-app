@@ -5,7 +5,7 @@ import { StyleSheet } from "react-native";
 
 const StackLayout = () => {
     return (
-        <Stack screenOptions={{headerShown: false}}>
+        <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(modals)/profileModal" options={
                 {
                     presentation: "modal",
@@ -21,6 +21,12 @@ const StackLayout = () => {
                     presentation: "modal",
                 }
             } />
+            <Stack.Screen
+                name="(modals)/searchModal"
+                options={{
+                    presentation: 'modal',
+                }}
+            />
         </Stack>
     );
 };
