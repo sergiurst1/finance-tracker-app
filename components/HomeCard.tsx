@@ -1,11 +1,33 @@
 import { colors, spacingX, spacingY } from '@/constants/theme';
+import { useAuth } from '@/contexts/authContext';
+import useFetchData from '@/hooks/useFetchData';
+import { WalletType } from '@/types';
 import { scale, verticalScale } from '@/utils/styling';
+import { orderBy, where } from 'firebase/firestore';
 import * as Icons from 'phosphor-react-native';
 import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 import Typo from './Typo';
 
 const HomeCard = () => {
+    const { user } = useAuth();
+    const { data: wallets, loading: walletLoading } = useFetchData<WalletType>(
+        "wallets",
+        [where("uid", "==", user?.uid), orderBy("created", "desc")]
+    );
+
+    const getTotals = () => {
+        return wallets.reduce(
+            (totals: any, item: WalletType) => {
+                totals.balance += item.amount;
+                totals.income += item.totalIncome;
+                totals.expense += item.totalExpenses;
+                return totals;
+            },
+            { balance: 0, income: 0, expense: 0 }
+        );
+    };
+
     return (
         <ImageBackground
             source={require('../assets/images/card.png')}
@@ -26,7 +48,7 @@ const HomeCard = () => {
                 </View>
 
                 <Typo color={colors.black} size={30} fontWeight={'bold'}>
-                    $2343.23
+                    ${walletLoading? "----" : getTotals()?.balance?.toFixed(2)}
                 </Typo>
 
                 {/* expense and income section */}
@@ -44,7 +66,7 @@ const HomeCard = () => {
                             <Typo size={16} color={colors.neutral700} fontWeight={'500'}>Income</Typo>
                         </View>
                         <View style={{ alignSelf: 'center' }}>
-                            <Typo size={17} color={colors.green} fontWeight={'600'}>$ 2342</Typo>
+                            <Typo size={17} color={colors.green} fontWeight={'600'}>$ {walletLoading? "----" : getTotals()?.income?.toFixed(2)}</Typo>
                         </View>
                     </View>
 
@@ -61,7 +83,7 @@ const HomeCard = () => {
                             <Typo size={16} color={colors.neutral700} fontWeight={'500'}>Expense</Typo>
                         </View>
                         <View style={{ alignSelf: 'center' }}>
-                            <Typo size={17} color={colors.rose} fontWeight={'600'}>$ 2342</Typo>
+                            <Typo size={17} color={colors.rose} fontWeight={'600'}>$ {walletLoading? "----" : getTotals()?.expense?.toFixed(2)}</Typo>
                         </View>
                     </View>
                 </View>

@@ -9,6 +9,7 @@ import { expenseCategories, transactionTypes } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/contexts/authContext';
 import useFetchData from '@/hooks/useFetchData';
+import { createUpdateTransaction } from '@/services/transactionService';
 import { TransactionType, WalletType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -54,7 +55,7 @@ const TransactionModal = () => {
       return;
     }
 
-    let transactionData : TransactionType = {
+    let transactionData: TransactionType = {
       type,
       amount,
       description,
@@ -66,9 +67,14 @@ const TransactionModal = () => {
     }
 
     setLoading(true);
-
-    console.log("Transaction Data:", transaction);
+    const res = await createUpdateTransaction(transactionData);
     setLoading(false);
+
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Transaction", res.msg);
+    }
   };
 
   return (

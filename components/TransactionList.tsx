@@ -1,4 +1,4 @@
-import { expenseCategories } from '@/constants/data';
+import { expenseCategories, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { TransactionItemProps, TransactionListType } from '@/types';
 import { verticalScale } from '@/utils/styling';
@@ -10,6 +10,7 @@ import Loading from './Loading';
 import Typo from './Typo';
 
 const TransactionList = ({ data, title, loading, emptyListMessage }: TransactionListType) => {
+
 
     const handleClick = () => {
         // toDo: 
@@ -49,8 +50,16 @@ const TransactionList = ({ data, title, loading, emptyListMessage }: Transaction
 };
 
 const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => {
-    // Dummy category for UI design
-    let category = expenseCategories['utilities'];
+    const category =
+        item.type === "income"
+            ? incomeCategory
+            : expenseCategories[item.category as keyof typeof expenseCategories];
+
+    const date = (item.date as any).toDate().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+    });
+
     const IconComponent = category.icon;
 
     return (
@@ -67,16 +76,16 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
                 <View style={styles.categoryDesc}>
                     <Typo size={17}>{category.label}</Typo>
                     <Typo size={12} color={colors.neutral400} textProps={{ numberOfLines: 1 }}>
-                        Paid wifi bill
+                        {item.description}
                     </Typo>
                 </View>
 
                 <View style={styles.amountDate}>
-                    <Typo fontWeight={'500'} color={colors.rose}>
-                        - $23
+                    <Typo fontWeight={'500'} color={item.type == "income"? colors.green : colors.rose}>
+                        {`${item.type == "income" ? "+$" : "-$"}${item?.amount}`}
                     </Typo>
                     <Typo size={13} color={colors.neutral400}>
-                        12 Jan
+                        {date}
                     </Typo>
                 </View>
             </TouchableOpacity>
