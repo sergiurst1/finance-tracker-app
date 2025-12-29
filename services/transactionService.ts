@@ -1,6 +1,9 @@
 import { firestore } from "@/config/firebase";
+import { colors } from "@/constants/theme";
 import { ResponseType, TransactionType, WalletType } from "@/types";
-import { collection, deleteDoc, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { getLast12Months, getLast7Days, getYearsRange } from '@/utils/common';
+import { scale } from "@/utils/styling";
+import { collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore';
 import { uploadFileToCloudinary } from "./imageService";
 
 export const createUpdateTransaction = async (
@@ -183,5 +186,141 @@ export const deleteTransaction = async (
         return { success: true };
     } catch (err: any) {
         return { success: false, msg: err.message };
+    }
+};
+
+const formatChartData = (dataArray: any[], type: 'day' | 'month' | 'year') => {
+    return dataArray.flatMap((item) => [
+        {
+            value: item.income,
+            label: type === 'day' ? item.day : type === 'month' ? item.month : item.year,
+            spacing: scale(4),
+            labelWidth: scale(30),
+            frontColor: colors.primary,
+        },
+        {
+            value: item.expense,
+            frontColor: colors.rose,
+        }
+    ]);
+};
+
+export const fetchWeeklyStats = async (uid: string) => {
+    try {
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+
+        const transactionQuery = query(
+            collection(firestore, 'transactions'),
+            where('uid', '==', uid),
+            where('date', '>=', Timestamp.fromDate(sevenDaysAgo)),
+            where('date', '<=', Timestamp.fromDate(today)),
+            orderBy('date', 'desc')
+        );
+
+        const querySnapshot = await getDocs(transactionQuery);
+        const weeklyData = getLast7Days();
+        const transactions: any[] = [];
+
+        querySnapshot.forEach((doc) => {
+            const transaction = { id: doc.id, ...doc.data() } as any;
+            transactions.push(transaction);
+
+            const transDate = transaction.date.toDate().toISOString().split('T')[0];
+            const dayData = weeklyData.find(d => d.date === transDate);
+
+            if (dayData) {
+                if (transaction.type === 'income') dayData.income += transaction.amount;
+                else if (transaction.type === 'expense') dayData.expense += transaction.amount;
+            }
+        });
+
+        return {
+            success: true,
+            data: { stats: formatChartData(weeklyData, 'day'), transactions }
+        };
+    } catch (error: any) {
+        return { success: false, msg: error.message };
+    }
+};
+
+export const fetchMonthlyStats = async (uid: string) => {
+    try {
+        const today = new Date();
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(today.getMonth() - 12);
+
+        const transactionQuery = query(
+            collection(firestore, 'transactions'),
+            where('date', '>=', Timestamp.fromDate(twelveMonthsAgo)),
+            where('uid', '==', uid),
+            orderBy('date', 'desc')
+        );
+
+        const querySnapshot = await getDocs(transactionQuery);
+        const monthlyData = getLast12Months();
+        const transactions: any[] = [];
+
+        querySnapshot.forEach((doc) => {
+            const transaction = { id: doc.id, ...doc.data() } as any;
+            transactions.push(transaction);
+
+            const date = transaction.date.toDate();
+            const monthName = date.toLocaleDateString('default', { month: 'short' });
+            const shortYear = date.getFullYear().toString().slice(-2);
+            const key = `${monthName} ${shortYear}`;
+
+            const monthData = monthlyData.find(m => m.month === key);
+            if (monthData) {
+                if (transaction.type === 'income') monthData.income += transaction.amount;
+                else if (transaction.type === 'expense') monthData.expense += transaction.amount;
+            }
+        });
+
+        return {
+            success: true,
+            data: { stats: formatChartData(monthlyData, 'month'), transactions }
+        };
+    } catch (error: any) {
+        return { success: false, msg: error.message };
+    }
+};
+
+export const fetchYearlyStats = async (uid: string) => {
+    try {
+        const transactionQuery = query(
+            collection(firestore, 'transactions'),
+            where('uid', '==', uid),
+            orderBy('date', 'desc')
+        );
+
+        const querySnapshot = await getDocs(transactionQuery);
+        const transactions: any[] = [];
+        querySnapshot.forEach(doc => transactions.push({ id: doc.id, ...doc.data() }));
+
+        if (transactions.length === 0) return { success: true, data: { stats: [], transactions: [] } };
+
+        const firstDate = transactions[transactions.length - 1].date.toDate();
+        const firstYear = firstDate.getFullYear();
+        const currentYear = new Date().getFullYear();
+
+        const yearlyData = getYearsRange(firstYear, currentYear);
+
+        transactions.forEach((transaction) => {
+            const year = transaction.date.toDate().getFullYear().toString();
+            const yearData = yearlyData.find((y : any) => y.year === year);
+            if (yearData) {
+                if (transaction.type === 'income') yearData.income += transaction.amount;
+                else if (transaction.type === 'expense') yearData.expense += transaction.amount;
+            }
+        });
+
+        return {
+            success: true,
+            data: { stats: formatChartData(yearlyData, 'year'), transactions }
+        };
+    } catch (error: any) {
+        return { success: false, msg: error.message };
     }
 };
