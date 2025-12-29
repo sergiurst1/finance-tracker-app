@@ -9,13 +9,14 @@ import { expenseCategories, transactionTypes } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
 import { useAuth } from '@/contexts/authContext';
 import useFetchData from '@/hooks/useFetchData';
-import { createUpdateTransaction } from '@/services/transactionService';
+import { createUpdateTransaction, deleteTransaction } from '@/services/transactionService';
 import { TransactionType, WalletType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { orderBy, where } from 'firebase/firestore';
-import React, { useState } from 'react';
+import * as Icons from 'phosphor-react-native';
+import React, { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 
@@ -66,6 +67,8 @@ const TransactionModal = () => {
       uid: user?.uid
     }
 
+    if(oldTransaction?.id) transactionData.id = oldTransaction.id as string;
+
     setLoading(true);
     const res = await createUpdateTransaction(transactionData);
     setLoading(false);
@@ -76,6 +79,40 @@ const TransactionModal = () => {
       Alert.alert("Transaction", res.msg);
     }
   };
+
+  useEffect(() => {
+    if (oldTransaction.id) {
+      setTransaction({
+        type: oldTransaction.type as string,
+        amount: Number(oldTransaction.amount),
+        category: oldTransaction.category as string,
+        date: new Date(oldTransaction.date as string),
+        description: oldTransaction.description as string,
+        walletId: oldTransaction.walletId as string,
+        image: oldTransaction.image as string,
+      });
+    }
+  }, [oldTransaction.id]);
+
+  const onDelete = async () => {
+    setLoading(true);
+    const res = await deleteTransaction(oldTransaction.id as string, oldTransaction.walletId as string);
+    setLoading(false);
+
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Transaction", res.msg);
+    }
+  };
+
+  const showDeleteAlert = () => {
+    Alert.alert('Confirm', "Are you sure you want to do this? \nThis action will remove all the transactions related to this wallet", [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', onPress: onDelete, style: 'destructive' }
+    ]);
+  };
+
 
   return (
     <ModalWrapper>
@@ -225,6 +262,14 @@ const TransactionModal = () => {
         </ScrollView>
 
         <View style={styles.footer}>
+          {oldTransaction.id && !loading && (
+            <TouchableOpacity
+              style={[styles.deleteButton]}
+              onPress={showDeleteAlert}
+            >
+              <Icons.TrashIcon color={colors.white} size={verticalScale(24)} weight='bold' />
+            </TouchableOpacity>
+          )}
           <Button onPress={onSubmit} loading={loading} style={{ flex: 1 }}>
             <Typo color={colors.black} fontWeight={'700'}>
               {oldTransaction.id ? "Update" : "Submit"}
@@ -309,6 +354,8 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: 'center',
     flexDirection: 'row',
+    marginTop: 20,
+    paddingBottom: spacingY._20,
   },
   dropdownItemContainer: {
     borderRadius: radius._15,
@@ -317,5 +364,14 @@ const styles = StyleSheet.create({
   dropdownIcon: {
     height: verticalScale(30),
     tintColor: colors.neutral300,
+  },
+  deleteButton: {
+    backgroundColor: colors.rose,
+    paddingHorizontal: spacingX._15,
+    height: verticalScale(54),
+    borderRadius: radius._15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacingX._10
   }
 });

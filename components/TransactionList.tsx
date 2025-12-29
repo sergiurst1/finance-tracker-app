@@ -1,8 +1,10 @@
 import { expenseCategories, incomeCategory } from '@/constants/data';
 import { colors, radius, spacingX, spacingY } from '@/constants/theme';
-import { TransactionItemProps, TransactionListType } from '@/types';
+import { TransactionItemProps, TransactionListType, TransactionType } from '@/types';
 import { verticalScale } from '@/utils/styling';
 import { FlashList } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
+import { Timestamp } from 'firebase/firestore';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -10,11 +12,24 @@ import Loading from './Loading';
 import Typo from './Typo';
 
 const TransactionList = ({ data, title, loading, emptyListMessage }: TransactionListType) => {
+    const router = useRouter()
 
-
-    const handleClick = () => {
-        // toDo: 
-    }
+    const handleItemClick = (item: TransactionType) => {
+        router.push({
+            pathname: "/(modals)/transactionModal",
+            params: {
+                id: item?.id,
+                type: item?.type,
+                amount: item?.amount.toString(),
+                category: item?.category,
+                date: (item?.date as Timestamp).toDate().toISOString(),
+                description: item?.description,
+                image: item?.image,
+                uid: item?.uid,
+                walletId: item?.walletId,
+            },
+        });
+    };
 
     return (
         <View style={styles.container}>
@@ -40,9 +55,8 @@ const TransactionList = ({ data, title, loading, emptyListMessage }: Transaction
                 <FlashList
                     data={data}
                     renderItem={({ item, index }) => (
-                        <TransactionItem item={item} index={index} handleClick={handleClick} />
+                        <TransactionItem item={item} index={index} handleClick={handleItemClick} />
                     )}
-                    maxItemsInRecyclePool={60}
                 />
             </View>
         </View>
@@ -64,7 +78,7 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
 
     return (
         <Animated.View entering={FadeInDown.delay(index * 70).springify().damping(14)}>
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => handleClick(item)}>
                 <View style={[styles.icon, { backgroundColor: category.bgColor }]}>
                     {
                         IconComponent && (
@@ -81,7 +95,7 @@ const TransactionItem = ({ item, index, handleClick }: TransactionItemProps) => 
                 </View>
 
                 <View style={styles.amountDate}>
-                    <Typo fontWeight={'500'} color={item.type == "income"? colors.green : colors.rose}>
+                    <Typo fontWeight={'500'} color={item.type == "income" ? colors.green : colors.rose}>
                         {`${item.type == "income" ? "+$" : "-$"}${item?.amount}`}
                     </Typo>
                     <Typo size={13} color={colors.neutral400}>

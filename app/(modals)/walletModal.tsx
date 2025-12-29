@@ -146,12 +146,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     deleteButton: {
-    backgroundColor: colors.rose,
-    paddingHorizontal: spacingX._15,
-    height: verticalScale(54),
-    borderRadius: radius._15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacingX._10
+        backgroundColor: colors.rose,
+        paddingHorizontal: spacingX._15,
+        height: verticalScale(54),
+        borderRadius: radius._15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: spacingX._10
   }
 });
